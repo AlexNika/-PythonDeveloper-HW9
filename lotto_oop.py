@@ -1,6 +1,7 @@
 import random
 import numpy as np
 import sys
+import copy
 
 
 def separator(symbol, count=55):
@@ -35,6 +36,7 @@ class Lototron:
             return self.keg
         else:
             print('Лототрон пуст!')
+            return 0
 
     def is_empty(self):
         return True if self.kegs else False
@@ -67,8 +69,8 @@ class Card:
     def show(self):
         print(self.appearance())
 
-    def update(self, index):
-        self.card[index] = 0
+    def update(self, item):
+        self.card[item] = 0
 
     def check(self, keg):
         self.position = np.where(self.card == keg)[0]
@@ -77,119 +79,90 @@ class Card:
 
 sep_count = 35
 game_status = False
+computers = ['Cray CS-Storm', 'Vulcan', 'Juqueen', 'Stampede', 'Piz Daint', 'Mira', 'K Computer', 'Sequoia', 'Titan',
+             'Tianhe-2']
+cards = []
 print('------------ Игра лото ------------')
 print(separator('-', sep_count))
 print('В игре могут принимать участие:')
-print('>> 1. Игрок / Компьютер')
-print('>> 2. Игрок / Игрок')
-print('>> 3. Компьютер / Компьютер')
+print('>> 1. Игроки / Компьютеры')
+print('>> 2. Игроки / Игроки')
+print('>> 3. Компьютеры / Компьютеры')
 print('>> 4. Press any key to EXIT')
-game_type = input('Выберите тип игры (1, 2 или 3): ')
-print(separator('-', sep_count), '\n')
-if game_type == '1':
-    player1 = input('Введите имя игрока: ')
-    card1 = Card(player1)
-    player1 = Player(player1, 'Human', 0)
-    player2 = 'Tiny Cray CS-Storm'
-    card2 = Card(player2)
-    player2 = Player(player2, 'AI', 0)
-elif game_type == '2':
-    player1 = input('Введите имя игрока №1: ')
-    card1 = Card(player1)
-    player1 = Player(player1, 'Human', 0)
-    player2 = input('Введите имя игрока №2: ')
-    card2 = Card(player2)
-    player2 = Player(player2, 'Human', 0)
-elif game_type == '3':
-    player1 = 'Tiny Cray CS-Storm'
-    card1 = Card(player1)
-    player1 = Player(player1, 'AI', 0)
-    player2 = 'Tiny Tianhe-2'
-    card2 = Card(player2)
-    player2 = Player(player2, 'AI', 0)
+game_type = int(input('Выберите тип игры (1, 2 или 3): '))
+if game_type in (1, 2):
+    players = list(input('Введите имена игроков через запятую (max=10): ').split(',')[:10])
+    for i, n in enumerate(players):
+        n = n.strip()
+        players[i] = Player(n, True, 0)
+        cards.append(Card(n))
+    if game_type == 1:
+        n = int(input('Введите количество играющих компьютеров (max=10): '))
+        computers = random.sample(computers, n if n <= 10 else 10)
+        for i, n in enumerate(computers):
+            computers[i] = Player(n, False, 0)
+            cards.append(Card(n))
+    else:
+        computers.clear()
+    players = players + computers
+    del computers
+elif game_type == 3:
+    n = int(input('Введите количество компьютеров (max=10): '))
+    computers = random.sample(computers, n if n <= 10 else 10)
+    for i, n in enumerate(computers):
+        computers[i] = Player(n, False, 0)
+        cards.append(Card(n))
+    players = copy.deepcopy(computers)
+    del computers
 else:
+    print('Введена цифра 4 или что-то другое...')
     sys.exit('ИГРА TERMINATED')
+print(separator('-', sep_count), '\n')
+
 print('*' * 8 + ' ИГРА НАЧАЛАСЬ ' + '*' * 8)
-print(f'Карточка игрока {player1.name}')
-card1.show()
-print(f'Карточка игрока {player2.name}')
-card2.show()
 bag = Lototron()
+for i, player in enumerate(players):
+    print(f'Карточка игрока {player.name}')
+    cards[i].show()
 while True:
     new_keg = bag.get_keg()
     print()
     if not game_status:
-        print(f'>>>>>>>>>> Роунд {90 - bag.kegs_count} <<<<<<<<<<')
-    if not game_status:
+        print(f'>>>>>>>>>> Раунд {90 - bag.kegs_count} <<<<<<<<<<')
         print(f'Новый бочонок: {new_keg} (осталось {bag.kegs_count})')
-    if player1.score == 15:
-        game_status = True
-        print(f'Игрок {player1.name} ВЫИГРАЛ!!!')
-        print(separator('*', sep_count))
-        sys.exit('ИГРА ЗАКОНЧЕНА')
-    elif player2.score == 15:
-        game_status = True
-        print(f'Игрок {player2.name} ВЫИГРАЛ!!!')
-        print(separator('*', sep_count))
-        sys.exit('ИГРА ЗАКОНЧЕНА')
-    else:
+    for i, player in enumerate(players):
+        if player.score == 15:
+            game_status = True
+            print(f'Игрок {player.name} ВЫИГРАЛ!!!')
+            print(separator('*', sep_count))
+            sys.exit('ИГРА ЗАКОНЧЕНА')
         if not bag.is_empty():
-            if player1.score == player2.score:
-                game_status = True
-                print('Ничья!!! Игроки закрыли одинаковое количество чисел на карточках')
-                print(separator('*', sep_count+29))
-                sys.exit('ИГРА ЗАКОНЧЕНА')
-            elif player1.score > player2.score:
-                game_status = True
-                print(f'Игрок {player1.name} ВЫИГРАЛ!!!')
-                print(separator('*', sep_count))
-                sys.exit('ИГРА ЗАКОНЧЕНА')
-            else:
-                game_status = True
-                print(f'Игрок {player2.name} ВЫИГРАЛ!!!')
-                print(separator('*', sep_count))
-                sys.exit('ИГРА ЗАКОНЧЕНА')
-
-        if player1.category == 'Human':
-            answer = input(f'{player1.name}, эачеркнуть цифру? (y/n) ').lower()
+            game_status = True
+            for p in players:
+                print(f'Игрок {player.name} : набрано {player.score} очков')
+            print(separator('*', sep_count))
+            sys.exit('ИГРА ЗАКОНЧЕНА')
+        if player.category:
+            answer = input(f'{player.name}, эачеркнуть цифру? (y/n) ').lower()
             if answer == 'y':
-                if card1.check(new_keg):
-                    player1.score += 1
-                    card1.update(card1.position)
+                if cards[i].check(new_keg):
+                    player.score += 1
+                    if player.score == 15:
+                        game_status = True
+                    cards[i].update(cards[i].position)
                 else:
-                    player1.failure()
+                    player.failure()
             elif answer == 'n':
-                if card1.check(new_keg):
-                    player1.failure()
+                if cards[i].check(new_keg):
+                    player.failure()
             else:
                 print('Неверный ответ на вопрос! Должно быть y/n')
                 sys.exit('ИГРА TERMINATED')
         else:
-            if card1.check(new_keg):
-                player1.score += 1
-                if player1.score == 15:
+            if cards[i].check(new_keg):
+                player.score += 1
+                if player.score == 15:
                     game_status = True
-                card1.update(card1.position)
-        if player2.category == 'Human':
-            answer = input(f'{player2.name}, эачеркнуть цифру? (y/n) ').lower()
-            if answer == 'y':
-                if card2.check(new_keg):
-                    player2.score += 1
-                    card2.update(card2.position)
-                else:
-                    player2.failure()
-            elif answer == 'n':
-                if card2.check(new_keg):
-                    player2.failure()
-            else:
-                print('Неверный ответ на вопрос! Должно быть y/n')
-                sys.exit('ИГРА TERMINATED')
-
-        else:
-            if card2.check(new_keg):
-                player2.score += 1
-                if player2.score == 15:
-                    game_status = True
-                card2.update(card2.position)
-    card1.show()
-    card2.show()
+                cards[i].update(cards[i].position)
+    for i, player in enumerate(players):
+        cards[i].show()
