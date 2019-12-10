@@ -1,0 +1,19 @@
+(venv) C:\Users\alexn\Documents\GITREPO\PythonDeveloper\-PythonDeveloper-HW9>pytest --cov=lotto_oop --cov=test_lotto_oop3
+==================================================================================================== test session starts =====================================================================================================
+platform win32 -- Python 3.7.2, pytest-5.3.1, py-1.8.0, pluggy-0.13.1
+rootdir: C:\Users\alexn\Documents\GITREPO\PythonDeveloper\-PythonDeveloper-HW9
+plugins: cov-2.8.1
+collected 15 items                                                                                                                                                                                                            
+
+test_lotto_oop3.py ...............                                                                                                                                                                                      [100%]
+
+----------- coverage: platform win32, python 3.7.2-final-0 -----------
+Name                 Stmts   Miss  Cover
+----------------------------------------
+lotto_oop.py            62      0   100%
+test_lotto_oop3.py      75      0   100%
+----------------------------------------
+TOTAL                  137      0   100%
+
+
+===================================================================================================== 15 passed in 0.33s =====================================================================================================
